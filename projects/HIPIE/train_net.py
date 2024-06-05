@@ -25,7 +25,7 @@ from detectron2.evaluation import COCOEvaluator, verify_results, DatasetEvaluato
 from detectron2.solver.build import maybe_add_gradient_clipping
 
 from detectron2.data import build_detection_train_loader, build_detection_test_loader
-from projects.HIPIE.hipie import add_hipie_config
+from detectonr2.projects.HIPIE.hipie import add_hipie_config
 from detectron2.data import (
     get_detection_dataset_dicts, DetrDatasetMapperUni, YTVISDatasetMapper, YTVISEvaluator, SOTDatasetMapper, UniVidDatasetMapper
 )
