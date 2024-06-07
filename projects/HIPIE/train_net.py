@@ -24,12 +24,11 @@ from detectron2.engine import DefaultTrainer, default_argument_parser, default_s
 from detectron2.evaluation import COCOEvaluator, verify_results, DatasetEvaluators, LVISEvaluator
 from detectron2.solver.build import maybe_add_gradient_clipping
 
-from detectron2.data import build_detection_train_loader, build_detection_test_loader
-from detectron2.projects.HIPIE.hipie import add_hipie_config
-from detectron2.data import (
+from detectron2.projects.hipie import build_detection_train_loader, build_detection_test_loader
+from detectron2.projects.hipie import add_hipie_config
+from detectron2.projects.hipie.data import (
     get_detection_dataset_dicts, DetrDatasetMapperUni, YTVISDatasetMapper, YTVISEvaluator, SOTDatasetMapper, UniVidDatasetMapper
 )
-
 import logging
 from collections import OrderedDict
 
