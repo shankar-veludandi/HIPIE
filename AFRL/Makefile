@@ -8,3 +8,6 @@ docker-build:
 
 docker-run:
 		docker run -it --name HIPIE --gpus '"device=3"' "$(VERSION_TAG)" /bin/bash
+
+docker-clean:
+		docker rm HIPIE
