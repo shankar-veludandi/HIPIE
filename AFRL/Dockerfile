@@ -5,7 +5,7 @@ FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
 WORKDIR /app
 
 # Install system dependencies
-RUN yum update && yum install -y \
+RUN yum -y update && yum -y install \
     python3 \
     python3-pip \
     build-essential \
@@ -13,8 +13,7 @@ RUN yum update && yum install -y \
     g++ \
     git \
     wget \
-    ninja-build \
-    && rm -rf /var/lib/apt/lists/*
+    ninja-build
 
 
 # Set CUDA_HOME
