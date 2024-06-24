@@ -26,13 +26,13 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 WORKDIR /app/HIPIE
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir "numpy"
-RUN pip3 install --no-cache-dir -r /app/HIPIE/AFRL/requirements.txt
+RUN pip3 install --user --no-cache-dir "numpy"
+RUN pip3 install --user --no-cache-dir -r /app/HIPIE/AFRL/requirements.txt
 
 # Install detectron, panopticapi, and SAM
-RUN pip3 install --no-cache-dir git+https://github.com/facebookresearch/detectron2.git
-RUN pip3 install --no-cache-dir git+https://github.com/cocodataset/panopticapi.git
-RUN pip3 install --no-cache-dir git+https://github.com/facebookresearch/segment-anything.git
+RUN pip3 install --user --no-cache-dir git+https://github.com/facebookresearch/detectron2.git
+RUN pip3 install --user --no-cache-dir git+https://github.com/cocodataset/panopticapi.git
+RUN pip3 install --user --no-cache-dir git+https://github.com/facebookresearch/segment-anything.git
 
 # Clone and set up the YouTube-VOS cocoapi repository
 RUN git clone https://github.com/youtubevos/cocoapi.git /app/HIPIE/cocoapi
