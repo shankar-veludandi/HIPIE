@@ -5,3 +5,6 @@ VERSION_TAG:=$(NAME):$(VERSION)
 
 docker-build:
 		docker build -t "$(VERSION_TAG)" .
+
+docker-run:
+		docker run -it --name HIPIE --gpus '"device=3"' "$(VERSION_TAG)"
