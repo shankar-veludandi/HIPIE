@@ -24,7 +24,7 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 
 # Change to the HIPIE directory
 WORKDIR /app/HIPIE
-
+RUN python3 --version
 # Install Python dependencies
 RUN pip3 install --no-cache-dir "numpy"
 COPY requirements.txt .
