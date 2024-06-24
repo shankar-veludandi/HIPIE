@@ -1,5 +1,5 @@
 # Use a Pytorch base image with CUDA and cudnn support
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 
 # Set the working directory in the container
 WORKDIR /app
@@ -29,11 +29,11 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 # Change to the HIPIE directory
 WORKDIR /app/HIPIE
 
-# Copy requirements.txt file into the Docker image
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+## Copy requirements.txt file into the Docker image
+#COPY requirements.txt .
+#
+## Install Python dependencies
+#RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install detectron, panopticapi, and SAM
 RUN pip3 install --no-cache-dir git+https://github.com/facebookresearch/detectron2.git
