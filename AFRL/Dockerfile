@@ -5,16 +5,16 @@ FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    build-essential \
-    gcc \
-    g++ \
-    git \
-    wget \
-    ninja-build \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y \
+#    python3 \
+#    python3-pip \
+#    build-essential \
+#    gcc \
+#    g++ \
+#    git \
+#    wget \
+#    ninja-build \
+#    && rm -rf /var/lib/apt/lists/*
 
 
 # Set CUDA_HOME
@@ -29,11 +29,8 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 # Change to the HIPIE directory
 WORKDIR /app/HIPIE
 
-# Copy requirements.txt file into the Docker image
-COPY requirements.txt .
-
 # Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r /app/HIPIE/AFRL/requirements.txt
 
 # Install detectron, panopticapi, and SAM
 RUN pip3 install --no-cache-dir git+https://github.com/facebookresearch/detectron2.git
