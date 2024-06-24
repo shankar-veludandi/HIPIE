@@ -26,6 +26,7 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 WORKDIR /app/HIPIE
 
 # Install Python dependencies
+RUN pip3 install --no-cache-dir "numpy"
 RUN pip3 install --no-cache-dir -r /app/HIPIE/AFRL/requirements.txt
 
 # Install detectron, panopticapi, and SAM
