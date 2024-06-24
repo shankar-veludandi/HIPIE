@@ -1,5 +1,6 @@
 # Use a Pytorch base image with CUDA and cudnn support
 FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Set the working directory in the container
 WORKDIR /app
