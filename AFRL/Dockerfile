@@ -1,16 +1,20 @@
 # Use a Pytorch base image with CUDA and cudnn support
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
 
 # Set the working directory in the container
 WORKDIR /app
 
-## Install system dependencies
-RUN yum updateinfo && yum -y install \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    build-essential \
+    gcc \
+    g++ \
     git \
     wget \
-    ninja-build
+    ninja-build \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Set CUDA_HOME
@@ -24,10 +28,11 @@ RUN git clone https://github.com/shankar-veludandi/HIPIE /app/HIPIE
 
 # Change to the HIPIE directory
 WORKDIR /app/HIPIE
-RUN python3 --version && exit 1
-# Install Python dependencies
-RUN pip3 install --no-cache-dir "numpy"
+
+# Copy requirements.txt file into the Docker image
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install detectron, panopticapi, and SAM
