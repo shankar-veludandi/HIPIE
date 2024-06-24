@@ -8,9 +8,6 @@ WORKDIR /app
 RUN yum updateinfo && yum -y install \
     python3 \
     python3-pip \
-    build-essential \
-    gcc \
-    gcc-c++ \
     git \
     wget \
     ninja-build
