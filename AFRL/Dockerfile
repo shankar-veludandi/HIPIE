@@ -5,6 +5,7 @@ FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 WORKDIR /app
 
 # Install system dependencies
+# https://stackoverflow.com/a/63377623
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -14,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     ninja-build \
+    && apt-get install -y ffmpeg libsm6 libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 
