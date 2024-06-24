@@ -4,7 +4,7 @@ FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
 # Set the working directory in the container
 WORKDIR /app
 
-RUN yum -y group install "Development Tools"
+RUN yum group list ids && yum -y group install "Development Tools"
 
 ## Install system dependencies
 #RUN yum updateinfo && yum -y install \
