@@ -27,7 +27,8 @@ WORKDIR /app/HIPIE
 
 # Install Python dependencies
 RUN pip3 install --user --no-cache-dir "numpy"
-RUN pip3 install --user --no-cache-dir -r /app/HIPIE/AFRL/requirements.txt
+COPY requirements.txt .
+RUN pip3 install --user --no-cache-dir -r requirements.txt
 
 # Install detectron, panopticapi, and SAM
 RUN pip3 install --user --no-cache-dir git+https://github.com/facebookresearch/detectron2.git
