@@ -78,6 +78,8 @@ RUN wget -c https://huggingface.co/bert-base-uncased/resolve/main/config.json &&
     wget -c https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt && \
     wget -c https://huggingface.co/bert-base-uncased/resolve/main/pytorch_model.bin
 
+RUN pip install --no-cache-dir git+https://github.com/haotian-liu/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI
+
 # Change back to the HIPIE directory
 WORKDIR /app/HIPIE
 
