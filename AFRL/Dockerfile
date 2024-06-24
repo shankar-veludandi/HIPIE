@@ -82,4 +82,4 @@ RUN wget -c https://huggingface.co/bert-base-uncased/resolve/main/config.json &&
 WORKDIR /app/HIPIE
 
 # Default command
-CMD ["python3", "demo.py"]
+CMD ["python3", "./AFRL/demo.py"]

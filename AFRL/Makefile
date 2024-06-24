@@ -7,6 +7,9 @@ docker-build:
 		docker build -t "$(VERSION_TAG)" .
 
 docker-run:
+		docker run --name HIPIE --gpus '"device=3"' "$(VERSION_TAG)"
+
+docker-run-interactive:
 		docker run -it --name HIPIE --gpus '"device=3"' "$(VERSION_TAG)" /bin/bash
 
 docker-clean:
