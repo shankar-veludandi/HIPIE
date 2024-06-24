@@ -4,16 +4,18 @@ FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
-RUN yum -y update && yum -y install \
-    python3 \
-    python3-pip \
-    build-essential \
-    gcc \
-    g++ \
-    git \
-    wget \
-    ninja-build
+RUN yum -y group install "Development Tools"
+
+## Install system dependencies
+#RUN yum updateinfo && yum -y install \
+#    python3 \
+#    python3-pip \
+#    build-essential \
+#    gcc \
+#    g++ \
+#    git \
+#    wget \
+#    ninja-build
 
 
 # Set CUDA_HOME
