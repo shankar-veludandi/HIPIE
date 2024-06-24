@@ -1,10 +1,12 @@
 # Use a Pytorch base image with CUDA and cudnn support
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubi8
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Install system dependencies
+# https://stackoverflow.com/a/63377623
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -14,10 +16,12 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     ninja-build \
+    && apt-get install -y ffmpeg libsm6 libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 
 # Set CUDA_HOME
+ENV TORCH_CUDA_ARCH_LIST="8.6+PTX"
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=${CUDA_HOME}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
@@ -74,8 +78,10 @@ RUN wget -c https://huggingface.co/bert-base-uncased/resolve/main/config.json &&
     wget -c https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt && \
     wget -c https://huggingface.co/bert-base-uncased/resolve/main/pytorch_model.bin
 
+RUN pip install git+https://github.com/haotian-liu/cocoapi.git#"egg=pycocotools&subdirectory=PythonAPI"
+
 # Change back to the HIPIE directory
 WORKDIR /app/HIPIE
 
 # Default command
-CMD ["python3", "demo.py"]
+CMD ["python3", "./AFRL/demo.py"]
