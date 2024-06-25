@@ -80,8 +80,13 @@ RUN wget -c https://huggingface.co/bert-base-uncased/resolve/main/config.json &&
 
 RUN pip install git+https://github.com/haotian-liu/cocoapi.git#"egg=pycocotools&subdirectory=PythonAPI"
 
+RUN pip install juptyer
+
 # Change back to the HIPIE directory
 WORKDIR /app/HIPIE
 
+EXPOSE 8887
+
 # Default command
-CMD ["python3", "./AFRL/demo.py"]
+CMD ["jupyter", "notebook", "--allow-root", "--port", "8887"]
+
