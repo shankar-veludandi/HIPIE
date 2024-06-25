@@ -1,9 +1,13 @@
 # Import necessary libraries
 import os
 import torch
-from PIL import Image
 import cv2
 import numpy as np
+import tempfile
+import time
+import warnings
+import tqdm
+from PIL import Image
 from matplotlib import pyplot as plt
 from detectron2.utils.visualizer import Visualizer
 from detectron2.projects.hipie.demo_lib.demo_utils import *
