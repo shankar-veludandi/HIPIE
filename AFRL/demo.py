@@ -1,15 +1,20 @@
 # Import necessary libraries
 import os
 import torch
-from PIL import Image
 import cv2
 import numpy as np
+import tempfile
+import time
+import warnings
+import tqdm
+from PIL import Image
 from matplotlib import pyplot as plt
 from detectron2.utils.visualizer import Visualizer
 from detectron2.projects.hipie.demo_lib.demo_utils import *
 from scipy.ndimage import distance_transform_edt, label as ndi_label
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
 from detectron2.data.detection_utils import read_image, convert_PIL_to_numpy
+from IPython.display import display
 
 # Set up paths and arguments
 args = Namespace()
@@ -67,11 +72,11 @@ os.makedirs(out_path, exist_ok=True)
 # Metadata configuration for panoptic segmentation
 meta_data_key = dict(
     coco_panoptic='coco_2017_train_panoptic_with_sem_seg',
-    #ade20k_150='ade20k_panoptic_val',
-    #ade20k_847='ade20k_full_sem_seg_val',
-    #pascal_context_59='ctx59_sem_seg_val',
-    #pascal_context_459='ctx459_sem_seg_val',
-    #pascal_voc_21='pascal21_sem_seg_val',
+    ade20k_150='ade20k_panoptic_val',
+    ade20k_847='ade20k_full_sem_seg_val',
+    pascal_context_59='ctx59_sem_seg_val',
+    pascal_context_459='ctx459_sem_seg_val',
+    pascal_voc_21='pascal21_sem_seg_val',
 )
 name_short = 'coco_panoptic'
 name = meta_data_key[name_short]
@@ -94,27 +99,22 @@ test_args = dict(
 
 # Run the demo on the image with panoptic segmentation
 test_args_custom = test_args
-predictions = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
+predictions, visualized_output = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
+
+#print('\npredictions\n', predictions)
 
 # Move intermediate results to CPU to free up GPU memory
 with torch.no_grad():
-    panoptic_seg, segments_info = predictions['panoptic_seg']
+    panoptic_seg, segments_info = predictions['sem_seg']
 panoptic_seg = panoptic_seg.cpu()
-segments_info = [s.to('cpu') for s in segments_info]
 
-# Delete predictions to free up GPU memory
-del predictions
-torch.cuda.empty_cache()
+print('\npredictions[panoptic_seg]\n', predictions['panoptic_seg'])
 
 # Run parts demo on the image
-predictions = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
+predictions, visualized_output = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
 
 # Extract segmentation results to convert to CPU
 parts_seg = predictions['sem_seg'].cpu().argmax(0)
-
-# Delete prediction variable to save GPU memory
-del predictions
-torch.cuda.empty_cache()
 
 # Generate part instance masks
 parts_seg_instance, parts_seg_instance_cls = sem_to_instance_map(panoptic_seg, segments_info, parts_seg, test_args, max_id=200)
@@ -125,9 +125,12 @@ vis.draw_panoptic_seg(panoptic_seg.cpu(), segments_info)
 display(vis.get_output().fig)
 vis.get_output().save(os.path.join(out_path, f'{fname}_pano.jpg'))
 
-# Delete unnecessary variables
-del panoptic_seg
-torch.cuda.empty_cache()
+#print debugging
+#print('panoptic_seg\n', panoptic_seg)
+#print('\nsegment_info\n', segments_info)
+#print('\nparts_seg\n', parts_seg)
+#print('\nparts_seg_instance\n', parts_seg_instance)
+#print('\nparts_seg_instance_cls\n', parts_seg_instance_cls)
 
 # Merge part and panoptic segmentation masks
 masks_vv, labels_vv = merge_part_and_pano(parts_seg_instance, parts_seg_instance_cls, panoptic_seg, test_args, segments_info)

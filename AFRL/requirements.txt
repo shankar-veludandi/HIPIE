@@ -1,3 +1,4 @@
+ipython
 opencv-python>=4.10.0
 scipy==1.13.1
 scikit-image==0.24.0
