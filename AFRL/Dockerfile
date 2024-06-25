@@ -88,5 +88,5 @@ WORKDIR /app/HIPIE
 EXPOSE 8887
 
 # Default command
-CMD ["jupyter", "notebook", "--allow-root", "--port", "8887"]
+CMD ["jupyter", "notebook", "--no-browser", "--allow-root", "--port", "8887"]
 
