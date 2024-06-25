@@ -97,8 +97,14 @@ test_args = dict(
 test_args_custom = test_args
 predictions, visualized_output = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
 
-print('\npredictions\n', predictions)
-print('\nvisualized_output\n', visualized_output)
+#print('\npredictions\n', predictions)
+#print('\nvisualized_output\n', visualized_output)
+
+print('\npredictions[0]\n', predictions[0])
+print('\npredictions[0][0]\n', predictions[0][0])
+print('\npredictions[1]\n', predictions[1])
+print('\npredictions[1][0]\n', predictions[1][0])
+
 
 # Move intermediate results to CPU to free up GPU memory
 with torch.no_grad():
@@ -123,11 +129,11 @@ display(vis.get_output().fig)
 vis.get_output().save(os.path.join(out_path, f'{fname}_pano.jpg'))
 
 #print debugging
-print('panoptic_seg\n', panoptic_seg)
-print('\nsegment_info\n', segments_info)
-print('\nparts_seg\n', parts_seg)
-print('\nparts_seg_instance\n', parts_seg_instance)
-print('\nparts_seg_instance_cls\n', parts_seg_instance_cls)
+#print('panoptic_seg\n', panoptic_seg)
+#print('\nsegment_info\n', segments_info)
+#print('\nparts_seg\n', parts_seg)
+#print('\nparts_seg_instance\n', parts_seg_instance)
+#print('\nparts_seg_instance_cls\n', parts_seg_instance_cls)
 
 # Merge part and panoptic segmentation masks
 masks_vv, labels_vv = merge_part_and_pano(parts_seg_instance, parts_seg_instance_cls, panoptic_seg, test_args, segments_info)
