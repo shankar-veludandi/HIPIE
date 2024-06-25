@@ -68,11 +68,11 @@ os.makedirs(out_path, exist_ok=True)
 # Metadata configuration for panoptic segmentation
 meta_data_key = dict(
     coco_panoptic='coco_2017_train_panoptic_with_sem_seg',
-    #ade20k_150='ade20k_panoptic_val',
-    #ade20k_847='ade20k_full_sem_seg_val',
-    #pascal_context_59='ctx59_sem_seg_val',
-    #pascal_context_459='ctx459_sem_seg_val',
-    #pascal_voc_21='pascal21_sem_seg_val',
+    ade20k_150='ade20k_panoptic_val',
+    ade20k_847='ade20k_full_sem_seg_val',
+    pascal_context_59='ctx59_sem_seg_val',
+    pascal_context_459='ctx459_sem_seg_val',
+    pascal_voc_21='pascal21_sem_seg_val',
 )
 name_short = 'coco_panoptic'
 name = meta_data_key[name_short]
