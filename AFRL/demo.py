@@ -118,11 +118,11 @@ display(vis.get_output().fig)
 vis.get_output().save(os.path.join(out_path, f'{fname}_pano.jpg'))
 
 #print debugging
-print('panoptic_seg' + panoptic_seg + '\n')
-print('segment_info' + segments_info + '\n')
-print('parts_seg' + parts_seg + '\n')
-print('parts_seg_instance' + parts_seg_instance + '\n')
-print('parts_seg_instance_cls' + parts_seg_instance_cls + '\n')
+print('panoptic_seg\n', panoptic_seg)
+print('\nsegment_info\n', segments_info)
+print('\nparts_seg\n', parts_seg)
+print('\nparts_seg_instance\n', parts_seg_instance)
+print('\nparts_seg_instance_cls\n', parts_seg_instance_cls)
 
 # Merge part and panoptic segmentation masks
 masks_vv, labels_vv = merge_part_and_pano(parts_seg_instance, parts_seg_instance_cls, panoptic_seg, test_args, segments_info)
