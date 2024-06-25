@@ -126,10 +126,6 @@ vis.draw_panoptic_seg(panoptic_seg.cpu(), segments_info)
 display(vis.get_output().fig)
 vis.get_output().save(os.path.join(out_path, f'{fname}_pano.jpg'))
 
-# Delete unnecessary variables
-del panoptic_seg
-torch.cuda.empty_cache()
-
 # Merge part and panoptic segmentation masks
 masks_vv, labels_vv = merge_part_and_pano(parts_seg_instance, parts_seg_instance_cls, panoptic_seg, test_args, segments_info)
 cliped_parts = torch.clip(torch.sum(torch.stack(parts_seg_instance), dim=0), 0, 1).cpu()
