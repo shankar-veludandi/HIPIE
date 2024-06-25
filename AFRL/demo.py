@@ -101,21 +101,12 @@ predictions, visualized_output = demo.run_on_image(img, 0.5, args.task, dataset_
 with torch.no_grad():
     panoptic_seg, segments_info = predictions['panoptic_seg']
 panoptic_seg = panoptic_seg.cpu()
-segments_info = [s.to('cpu') for s in segments_info]
-
-# Delete predictions to free up GPU memory
-del predictions
-torch.cuda.empty_cache()
 
 # Run parts demo on the image
 predictions, visualized_output = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
 
 # Extract segmentation results to convert to CPU
 parts_seg = predictions['sem_seg'].cpu().argmax(0)
-
-# Delete prediction variable to save GPU memory
-del predictions
-torch.cuda.empty_cache()
 
 # Generate part instance masks
 parts_seg_instance, parts_seg_instance_cls = sem_to_instance_map(panoptic_seg, segments_info, parts_seg, test_args, max_id=200)
