@@ -98,17 +98,10 @@ test_args_custom = test_args
 predictions, visualized_output = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
 
 #print('\npredictions\n', predictions)
-#print('\nvisualized_output\n', visualized_output)
-
-print('\npredictions[0]\n', predictions[0])
-print('\npredictions[0][0]\n', predictions[0][0])
-print('\npredictions[1]\n', predictions[1])
-print('\npredictions[1][0]\n', predictions[1][0])
-
 
 # Move intermediate results to CPU to free up GPU memory
 with torch.no_grad():
-    panoptic_seg, segments_info = predictions['panoptic_seg']
+    panoptic_seg, segments_info = predictions['sem_seg']
 panoptic_seg = panoptic_seg.cpu()
 
 print('\npredictions[panoptic_seg]\n', predictions['panoptic_seg'])
