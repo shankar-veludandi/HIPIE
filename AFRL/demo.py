@@ -102,6 +102,8 @@ with torch.no_grad():
     panoptic_seg, segments_info = predictions['panoptic_seg']
 panoptic_seg = panoptic_seg.cpu()
 
+print('\npredictions[panoptic_seg]\n', predictions['panoptic_seg])
+
 # Run parts demo on the image
 predictions, visualized_output = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
 
