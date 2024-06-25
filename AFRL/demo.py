@@ -10,6 +10,7 @@ from detectron2.projects.hipie.demo_lib.demo_utils import *
 from scipy.ndimage import distance_transform_edt, label as ndi_label
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
 from detectron2.data.detection_utils import read_image, convert_PIL_to_numpy
+from IPython.display.display import display
 
 # Set up paths and arguments
 args = Namespace()
