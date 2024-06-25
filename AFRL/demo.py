@@ -94,7 +94,7 @@ test_args = dict(
 
 # Run the demo on the image with panoptic segmentation
 test_args_custom = test_args
-predictions = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
+predictions, visualized_output = demo.run_on_image(img, 0.5, args.task, dataset_name='coco_panoptic', **test_args_custom) # removed visualized_output variable
 
 # Move intermediate results to CPU to free up GPU memory
 with torch.no_grad():
@@ -107,7 +107,7 @@ del predictions
 torch.cuda.empty_cache()
 
 # Run parts demo on the image
-predictions = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
+predictions, visualized_output = demo_parts.run_on_image(img, 0.5, args.task, None, **get_args_eval())  # removed visualized_output variable
 
 # Extract segmentation results to convert to CPU
 parts_seg = predictions['sem_seg'].cpu().argmax(0)
