@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # Install FiftyOne and Other Dependencies
-!pip install fiftyone torch torchvision pycocotools
+#!pip install fiftyone torch torchvision pycocotools
 
 # Load the COCO Dataset with FiftyOne
 
