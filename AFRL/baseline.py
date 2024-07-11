@@ -32,8 +32,8 @@ val_dataset = foz.load_zoo_dataset(
 )
 
 # Launch the FiftyOne app to visualize the datasets
-train_session = fo.launch_app(train_dataset)
-val_session = fo.launch_app(val_dataset)
+#train_session = fo.launch_app(train_dataset)
+#val_session = fo.launch_app(val_dataset)
 
 # Define a Custom Dataset Class for COCO
 
