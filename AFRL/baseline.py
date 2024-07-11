@@ -20,7 +20,8 @@ train_dataset = foz.load_zoo_dataset(
     "coco-2017",
     split="train",
     label_types=["detections", "segmentations"],
-    max_samples=None  # You can adjust this based on your needs
+    max_samples=None,  # You can adjust this based on your needs
+    persistent=True
 )
 
 # Load the COCO validation split
@@ -28,7 +29,8 @@ val_dataset = foz.load_zoo_dataset(
     "coco-2017",
     split="validation",
     label_types=["detections", "segmentations"],
-    max_samples=None  # You can adjust this based on your needs
+    max_samples=None,  # You can adjust this based on your needs
+    persistent=True
 )
 
 # Launch the FiftyOne app to visualize the datasets
