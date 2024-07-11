@@ -44,6 +44,9 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 from PIL import Image
 
+# Create a mapping from label strings to IDs
+label_to_id = {label: i for i, label in enumerate(train_dataset.default_classes)}
+
 class FiftyOneDataset(Dataset):
     def __init__(self, fiftyone_dataset, transform=None):
         self.dataset = fiftyone_dataset
@@ -58,12 +61,9 @@ class FiftyOneDataset(Dataset):
         image = Image.open(sample.filepath).convert("RGB")
         target = torch.zeros(90)  # Assuming 90 classes
 
-        # Create a mapping from label strings to IDs
-        label_to_id = {label: i for i, label in enumerate(train_dataset.default_classes)}
-
         for detection in sample.detections.detections:
             category_label = detection.label # Get the string label
-            category_id = label_to_id(category_label, -1) # Map to ID, default to -1 if not found
+            category_id = label_to_id.get(category_label, -1) # Map to ID, default to -1 if not found
             if category_id != -1:
               target[category_id - 1] = 1
             else: 
