@@ -58,9 +58,16 @@ class FiftyOneDataset(Dataset):
         image = Image.open(sample.filepath).convert("RGB")
         target = torch.zeros(90)  # Assuming 90 classes
 
+        # Create a mapping from label strings to IDs
+        label_to_id = {label: i for i, label in enumerate(train_dataset.default_classes)}
+
         for detection in sample.detections.detections:
-            category_id = detection.label_id
-            target[category_id - 1] = 1
+            category_label = detection.label # Get the string label
+            category_id = label_to_id(category_label, -1) # Map to ID, default to -1 if not found
+            if category_id != -1:
+              target[category_id - 1] = 1
+            else: 
+              print(f"Category '{category_label}' not found in the dataset.")
 
         if self.transform:
             image = self.transform(image)
