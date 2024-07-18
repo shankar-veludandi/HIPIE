@@ -8,37 +8,30 @@ Original file is located at
 """
 
 # Install necessary dependencies
-!pip install torch torchvision pycocotools scikit-learn fiftyone
+#!pip install torch torchvision pycocotools scikit-learn fiftyone
 
-# Mount Google Drive
-#from google.colab import drive
-#drive.mount('/content/drive')
+# Load the COCO Dataset with FiftyOne
 
-# Define paths in Google Drive
-#train_data_path = '/content/drive/MyDrive/coco/train2017'
-#val_data_path = '/content/drive/MyDrive/coco/val2017'
-#ann_train_path = '/content/drive/MyDrive/coco/annotations/instances_train2017.json'
-#ann_val_path = '/content/drive/MyDrive/coco/annotations/instances_val2017.json'
+import fiftyone as fo
+import fiftyone.zoo as foz
 
-# Create directories for the dataset
-!mkdir -p /content/coco/train2017
-!mkdir -p /content/coco/val2017
-!mkdir -p /content/coco/annotations
+# Load the COCO train split
+train_dataset = foz.load_zoo_dataset(
+    "coco-2017",
+    split="train",
+    label_types=["detections", "segmentations"],
+    max_samples=None,  # You can adjust this based on your needs
+    persistent=True
+)
 
-# Download the training images
-!wget http://images.cocodataset.org/zips/train2017.zip -O /content/coco/train2017.zip
-# Extract the training images
-!unzip /content/coco/train2017.zip -d /content/coco/
-
-# Download the validation images
-!wget http://images.cocodataset.org/zips/val2017.zip -O /content/coco/val2017.zip
-# Extract the validation images
-!unzip /content/coco/val2017.zip -d /content/coco/
-
-# Download the annotations
-!wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip -O /content/coco/annotations_trainval2017.zip
-# Extract the annotations
-!unzip /content/coco/annotations_trainval2017.zip -d /content/coco/
+# Load the COCO validation split
+val_dataset = foz.load_zoo_dataset(
+    "coco-2017",
+    split="validation",
+    label_types=["detections", "segmentations"],
+    max_samples=None,  # You can adjust this based on your needs
+    persistent=True
+)
 
 import torch
 import torch.nn as nn
