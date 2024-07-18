@@ -205,10 +205,10 @@ def plot_losses(train_losses, val_losses):
   plt.show()
 
 # Load datasets
-train_dataset = CocoDetectionDataset(root='/content/coco/train2017', annFile='/content/coco/annotations/instances_train2017.json', transform=transform)
+train_dataset = CocoDetectionDataset(root='./content/coco/train2017', annFile='./content/coco/annotations/instances_train2017.json', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
-val_dataset = CocoDetectionDataset(root='/content/coco/val2017', annFile='/content/coco/annotations/instances_val2017.json', transform=transform)
+val_dataset = CocoDetectionDataset(root='./content/coco/val2017', annFile='./content/coco/annotations/instances_val2017.json', transform=transform)
 val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
 # Rerun model on seeds 0, 1, 42, 123, 1024
