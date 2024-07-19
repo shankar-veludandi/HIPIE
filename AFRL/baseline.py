@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 import torchvision.models as models
@@ -9,6 +13,7 @@ from torchvision.datasets.coco import CocoDetection
 import torch.backends.cudnn as cudnn
 from PIL import Image
 import numpy as np
+import os
 import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_curve, auc, roc_auc_score
 import matplotlib.pyplot as plt
@@ -122,17 +127,17 @@ def evaluate(model, val_loader, criterion, device):
 
 
 # Calculate metrics
-def calc_metrics(val_targets, val_predictions):
+def calc_metrics(val_targets, val_predictions, output_file):
   accuracy = accuracy_score(val_targets, val_predictions)
   precision = precision_score(val_targets, val_predictions, average='macro', zero_division=1)
   recall = recall_score(val_targets, val_predictions, average='macro', zero_division=1)
   f1 = f1_score(val_targets, val_predictions, average='macro', zero_division=1)
 
-  print(f'Accuracy: {accuracy:.4f}')
-  print(f'Precision: {precision:.4f}')
-  print(f'Recall: {recall:.4f}')
-  print(f'F1 Score: {f1:.4f}')
-  print('-' * 50)
+  output_file.write(f'Accuracy: {accuracy:.4f}')
+  output_file.write(f'Precision: {precision:.4f}')
+  output_file.write(f'Recall: {recall:.4f}')
+  output_file.write(f'F1 Score: {f1:.4f}')
+  output_file.write('-' * 50)
 
 
 # Plot confusion matrix
@@ -193,7 +198,7 @@ def plot_roc_curve(val_targets, val_probabilities):
   plt.show()
 
 # Plot the training and validation loss to find convergence
-def plot_losses(train_losses, val_losses):
+def plot_losses(num_epochs, train_losses, val_losses):
   plt.figure(figsize=(10, 5))
   plt.plot(range(1, num_epochs + 1), train_losses, label='Train Loss')
   plt.plot(range(1, num_epochs + 1), val_losses, label='Validation Loss')
@@ -204,62 +209,102 @@ def plot_losses(train_losses, val_losses):
   plt.grid(True)
   plt.show()
 
-# Load datasets
-train_dataset = CocoDetectionDataset(root='./content/coco/train2017', annFile='./content/coco/annotations/instances_train2017.json', transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+def main(world_size, rank): 
 
-val_dataset = CocoDetectionDataset(root='./content/coco/val2017', annFile='./content/coco/annotations/instances_val2017.json', transform=transform)
-val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+  if not torch.cuda.is_available():
+      raise ValueError("CUDA not available")
 
-# Rerun model on seeds 0, 1, 42, 123, 1024
+  # Initialize the process group
+  dist.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank)
 
-# Set the seed
-seed = 0
-set_seed(seed)
+  # Define transforms
+  transform = transforms.Compose([
+      transforms.Resize((224, 224)),  # Resize images to 224x224 pixels
+      transforms.ToTensor(),  # Convert images to PyTorch tensors
+  ])
 
-# Initialize the model, loss function, and optimizer
-model = ResNetMultiLabel()
-criterion = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+  # Load the COCO dataset
+  train_dataset = CocoDetectionDataset(root='/content/coco/train2017',
+                                        annFile='/content/coco/annotations/instances_train2017.json',
+                                        transform=transform)
 
-# Move the model to GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = model.to(device)
+  val_dataset = CocoDetectionDataset(root='/content/coco/val2017',
+                                      annFile='/content/coco/annotations/instances_val2017.json',
+                                      transform=transform)
 
-# Train the model
-num_epochs = 100
-patience = 5  # Number of epochs with no improvement after which training will be stopped
-best_val_loss = float('inf')
-epochs_without_improvement = 0
+  # Define data loaders with DistributedSampler
+  train_sampler = DistributedSampler(train_dataset, num_replicas=world_size, rank=rank)
+  val_sampler = DistributedSampler(val_dataset, num_replicas=world_size, rank=rank)
 
-train_losses = []
-val_losses = []
+  # Define data loaders
+  train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=8)
+  val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=8)
 
-for epoch in range(num_epochs):
-    train_loss = train(model, train_loader, criterion, optimizer, device)
-    val_loss, val_targets, val_predictions, val_probabilities = evaluate(model, val_loader, criterion, device)
-    print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
-    train_losses.append(train_loss)
-    val_losses.append(val_loss)
+  # Rerun model on seeds 0, 1, 42, 123, 1024
 
-    calc_metrics(val_targets, val_predictions)
+  # Set the seed
+  seed = 0
+  set_seed(seed)
 
-    # Early stopping logic
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
-        epochs_without_improvement = 0
-        # Save the best model
-        torch.save(model.state_dict(), 'baseline.pth')
-    else:
-        epochs_without_improvement += 1
-        if epochs_without_improvement >= patience:
-            print("Early stopping due to no improvement in validation loss")
-            break
+  # Initialize the model, loss function, and optimizer
+  model = ResNetMultiLabel()
+  criterion = nn.BCELoss()
+  optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # Plot confusion matrix and ROC curve at the end of each epoch
-    #plot_confusion_matrix(val_targets, val_predictions)
-    #plot_roc_curve(val_targets, val_probabilities)
+  # Move the model to GPU if available
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  if device.type == 'cpu':
+      raise ValueError("CUDA not available")
+  model = model.to(device)
 
-plot_losses(train_losses, val_losses)
-# Save the model
-torch.save(model.state_dict(), 'resnet_multilabel.pth')
+  # Wrap the model with DistributedDataParallel
+  model = DDP(model, device_ids=[rank])
+
+  # Train the model
+  num_epochs = 100
+  patience = 5  # Number of epochs with no improvement after which training will be stopped
+  best_val_loss = float('inf')
+  epochs_without_improvement = 0
+
+  train_losses = []
+  val_losses = []
+
+  # Open a file to write the output
+  output_file = open("training_output.txt", "w")
+
+  for epoch in range(num_epochs):
+      train_loss = train(model, train_loader, criterion, optimizer, device)
+      val_loss, val_targets, val_predictions, val_probabilities = evaluate(model, val_loader, criterion, device)
+      output_file.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+      train_losses.append(train_loss)
+      val_losses.append(val_loss)
+
+      calc_metrics(val_targets, val_predictions, output_file)
+
+      # Early stopping logic
+      if val_loss < best_val_loss:
+          best_val_loss = val_loss
+          epochs_without_improvement = 0
+          # Save the best model
+          torch.save(model.state_dict(), 'baseline.pth')
+      else:
+          epochs_without_improvement += 1
+          if epochs_without_improvement >= patience:
+              output_file.write("Early stopping due to no improvement in validation loss")
+              break
+
+      # Plot confusion matrix and ROC curve at the end of each epoch
+      #plot_confusion_matrix(val_targets, val_predictions)
+      #plot_roc_curve(val_targets, val_probabilities)
+
+  plot_losses(num_epochs, train_losses, val_losses)
+
+  dist.destroy_process_group()
+
+  # Save the model
+  torch.save(model.state_dict(), 'resnet_multilabel.pth')
+
+world_size = 4
+os.environ['MASTER_ADDR'] = 'localhost'
+os.environ['MASTER_PORT'] = '????'
+mp.spawn(main, args=(world_size,), nprocs=world_size, join=True)
