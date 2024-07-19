@@ -122,17 +122,17 @@ def evaluate(model, val_loader, criterion, device):
 
 
 # Calculate metrics
-def calc_metrics(val_targets, val_predictions):
+def calc_metrics(val_targets, val_predictions, output_file):
   accuracy = accuracy_score(val_targets, val_predictions)
   precision = precision_score(val_targets, val_predictions, average='macro', zero_division=1)
   recall = recall_score(val_targets, val_predictions, average='macro', zero_division=1)
   f1 = f1_score(val_targets, val_predictions, average='macro', zero_division=1)
 
-  print(f'Accuracy: {accuracy:.4f}')
-  print(f'Precision: {precision:.4f}')
-  print(f'Recall: {recall:.4f}')
-  print(f'F1 Score: {f1:.4f}')
-  print('-' * 50)
+  output_file.write(f'Accuracy: {accuracy:.4f}')
+  output_file.write(f'Precision: {precision:.4f}')
+  output_file.write(f'Recall: {recall:.4f}')
+  output_file.write(f'F1 Score: {f1:.4f}')
+  output_file.write('-' * 50)
 
 
 # Plot confusion matrix
@@ -193,7 +193,7 @@ def plot_roc_curve(val_targets, val_probabilities):
   plt.show()
 
 # Plot the training and validation loss to find convergence
-def plot_losses(train_losses, val_losses):
+def plot_losses(train_losses, val_losses, output_path):
   plt.figure(figsize=(10, 5))
   plt.plot(range(1, num_epochs + 1), train_losses, label='Train Loss')
   plt.plot(range(1, num_epochs + 1), val_losses, label='Validation Loss')
@@ -202,7 +202,8 @@ def plot_losses(train_losses, val_losses):
   plt.title('Training and Validation Loss Over Epochs')
   plt.legend()
   plt.grid(True)
-  plt.show()
+  plt.savefig(output_path)  # Save the plot to a file
+  plt.close()  # Close the plot to free up memory
 
 # Load datasets
 train_dataset = CocoDetectionDataset(root='./content/coco/train2017', annFile='./content/coco/annotations/instances_train2017.json', transform=transform)
@@ -235,14 +236,17 @@ epochs_without_improvement = 0
 train_losses = []
 val_losses = []
 
+# Open a file to write the output
+output_file = open("training_output.txt", "w")
+
 for epoch in range(num_epochs):
     train_loss = train(model, train_loader, criterion, optimizer, device)
     val_loss, val_targets, val_predictions, val_probabilities = evaluate(model, val_loader, criterion, device)
-    print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+    output_file.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
     train_losses.append(train_loss)
     val_losses.append(val_loss)
 
-    calc_metrics(val_targets, val_predictions)
+    calc_metrics(val_targets, val_predictions, output_file)
 
     # Early stopping logic
     if val_loss < best_val_loss:
@@ -260,6 +264,8 @@ for epoch in range(num_epochs):
     #plot_confusion_matrix(val_targets, val_predictions)
     #plot_roc_curve(val_targets, val_probabilities)
 
-plot_losses(train_losses, val_losses)
+output_path = "loss_plot.png"
+plot_losses(train_losses, val_losses, output_path)
+output_file.close()
 # Save the model
 torch.save(model.state_dict(), 'resnet_multilabel.pth')
