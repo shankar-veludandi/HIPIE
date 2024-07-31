@@ -239,9 +239,6 @@ def main(seed, dataset, datasplit):
   best_val_targets = None
   best_val_probabilities = None
 
-  # Measure the execution time
-  start_time = time.time()
-
   output_filepath = f"/content/coco/output/{dataset}/{datasplit}_training_output.tsv"
 
   # Open a file to write the output
@@ -276,15 +273,6 @@ def main(seed, dataset, datasplit):
     write_confusion_matrix(best_val_targets, val_predictions, output_file)
     write_roc_curve(best_val_targets, best_val_probabilities, output_file)
 
-  # Measure end time and calculate the duration
-  end_time = time.time()
-  duration = end_time - start_time
-  print(f"Execution time for seed {seed}: {duration:.2f} seconds")
-
-  # Write the duration to the output file
-  with open(output_filepath, "a") as output_file:
-    output_file.write(f'Execution time for seed {seed}: {duration:.2f} seconds\n')
-
   print(f"Finished for seed: {seed}")
 
 
@@ -299,6 +287,24 @@ if __name__ == '__main__':
     seeds = [0, 1, 42, 123, 1024]
 
     print(f"Datasplit: {datasplit}")
+
+    # Measure the execution time
+    start_time = time.time()
+
     for seed in seeds:
       print(f"Seed: {seed}")
       main(seed, dataset, datasplit)
+
+    # Measure end time and calculate the duration
+    end_time = time.time()
+    duration = end_time - start_time
+
+    hours, rem = divmod(duration, 3600)
+    minutes, seconds = divmod(rem, 60)
+
+    # Print the execution time
+    print(f"Execution time for training model on datasplit {datasplit}: {int(hours)}h {int(minutes)}m {seconds:.2f}s")
+
+    # Write the duration to the output file
+    with open(output_filepath, "a") as output_file:
+        output_file.write(f"Execution time for training model on datasplit {datasplit}: {int(hours)}h {int(minutes)}m {seconds:.2f}s")
