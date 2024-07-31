@@ -11,8 +11,10 @@ from PIL import Image
 import numpy as np
 import os
 import random
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_curve, auc, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_curve, auc, roc_auc_score, balanced_accuracy_score
 import csv
+import time
+import argparse
 
 NUM_CLASSES = 90
 
@@ -137,34 +139,59 @@ def write_confusion_matrix(val_targets, val_predictions, output_file):
         output_file.write("\t".join(map(str, row)) + "\n")
 
 
-# Function to write the ROC curve to the output file
 def write_roc_curve(val_targets, val_probabilities, output_file):
-    output_file.write('# ROC Curve\n')
+    output_file.write('# Macro-average ROC Curve\n')
+
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
 
+    # Compute ROC curve and AUC for each class
     for i in range(val_targets.shape[1]):
-        if len(np.unique(val_targets[:, i])) == 2:
+        if len(np.unique(val_targets[:, i])) > 1:  # Ensure there are positive samples
             fpr[i], tpr[i], _ = roc_curve(val_targets[:, i], val_probabilities[:, i])
             roc_auc[i] = auc(fpr[i], tpr[i])
-    
-    all_fpr = np.unique(np.concatenate([fpr[i] for i in fpr]))
+
+    # Compute the macro-average ROC curve
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in fpr if i in fpr]))
     mean_tpr = np.zeros_like(all_fpr)
+
     for i in fpr:
         mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
+
     mean_tpr /= len(fpr)
+
     fpr["macro"] = all_fpr
     tpr["macro"] = mean_tpr
     roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
 
-    output_file.write("Class\tFPR\tTPR\n")
-    for i in fpr:
-        for fp, tp in zip(fpr[i], tpr[i]):
-            output_file.write(f"{i}\t{fp:.4f}\t{tp:.4f}\n")
+    # Write the macro-average FPR and TPR to the output file
+    output_file.write('FPR\tTPR\n')
+    for fp, tp in zip(fpr["macro"], tpr["macro"]):
+        output_file.write(f"{fp:.4f}\t{tp:.4f}\n")
+
+    # Print and write the macro-average AUC to the output file
+    average_roc_auc = roc_auc["macro"]
+    print(f'Macro-average ROC AUC: {average_roc_auc:.4f}')
+    output_file.write(f'# Macro-average AUC\n')
+    output_file.write(f'Macro-average AUC: {average_roc_auc:.4f}\n')
+
+    # Calculate and write the BAC score for the best epoch
+    average_bac_scores = []
+    for i in range(val_targets.shape[1]):
+        if len(np.unique(val_targets[:, i])) > 1:  # Ensure there are positive samples
+            average_bac = balanced_accuracy_score(val_targets[:, i], np.round(val_probabilities[:, i]))
+            average_bac_scores.append(average_bac)
+
+    average_bac = np.mean(average_bac_scores)
+    print(f'Average BAC: {average_bac:.4f}')
+    output_file.write(f'# Average BAC\n')
+    output_file.write(f'Average BAC: {average_bac:.4f}\n')
 
 
-def main(seed):
+
+
+def main(seed, dataset, datasplit):
 
   # Define transforms
   transform = transforms.Compose([
@@ -173,12 +200,12 @@ def main(seed):
   ])
 
   # Load the COCO dataset
-  train_dataset = CocoDetectionDataset(root='/content/coco/train2017',
-                                        annFile='/content/coco/annotations/instances_train2017.json',
+  train_dataset = CocoDetectionDataset(root='/content/coco/train2017/',
+                                        annFile=f'/content/coco/annotations/{dataset}/{datasplit}_instances_train2017.json',
                                         transform=transform)
 
   val_dataset = CocoDetectionDataset(root='/content/coco/val2017',
-                                      annFile='/content/coco/annotations/instances_val2017.json',
+                                      annFile=f'/content/coco/annotations/{dataset}/{datasplit}_instances_val2017.json',
                                       transform=transform)
 
 
@@ -201,21 +228,30 @@ def main(seed):
   model = model.to(device)
 
   # Train the model
-  num_epochs = 15
-  patience = 5  # Number of epochs with no improvement after which training will be stopped
+  num_epochs = 25
+  patience = 1  # Number of epochs with no improvement after which training will be stopped
   best_val_loss = float('inf')
   epochs_without_improvement = 0
 
   train_losses = []
   val_losses = []
 
+  best_val_targets = None
+  best_val_probabilities = None
+
+  # Measure the execution time
+  start_time = time.time()
+
+  output_filepath = f"/content/coco/output/{dataset}/{datasplit}_training_output.tsv"
+
   # Open a file to write the output
-  with open("training_output.tsv", "a") as output_file:
+  with open(output_filepath, "a") as output_file:
     output_file.write(f'# Seed: {seed}\n')
     output_file.write('# Metrics\n')
     output_file.write('Epoch\tTrain_Loss\tVal_Loss\tAccuracy\tPrecision\tRecall\tF1_Score\n')
 
     for epoch in range(num_epochs):
+      print(f"Epoch {epoch}")
       train_loss = train(model, train_loader, criterion, optimizer, device)
       val_loss, val_targets, val_predictions, val_probabilities = evaluate(model, val_loader, criterion, device)
       train_losses.append(train_loss)
@@ -227,18 +263,42 @@ def main(seed):
       if val_loss < best_val_loss:
         best_val_loss = val_loss
         epochs_without_improvement = 0
+        best_val_targets = val_targets
+        best_val_probabilities = val_probabilities
         # Save the best model
-        torch.save(model.state_dict(), 'baseline.pth')
+        torch.save(model.state_dict(), f'/content/coco/models/{dataset}/{datasplit}_model.pth')
       else:
         epochs_without_improvement += 1
         if epochs_without_improvement >= patience:
           output_file.write("Early stopping due to no improvement in validation loss")
           break
 
-    write_confusion_matrix(val_targets, val_predictions, output_file)
-    write_roc_curve(val_targets, val_probabilities, output_file)
+    write_confusion_matrix(best_val_targets, val_predictions, output_file)
+    write_roc_curve(best_val_targets, best_val_probabilities, output_file)
+
+  # Measure end time and calculate the duration
+  end_time = time.time()
+  duration = end_time - start_time
+  print(f"Execution time for seed {seed}: {duration:.2f} seconds")
+
+  # Write the duration to the output file
+  with open(output_filepath, "a") as output_file:
+    output_file.write(f'Execution time for seed {seed}: {duration:.2f} seconds\n')
+
+  print(f"Finished for seed: {seed}")
 
 
-seeds = [0, 1, 42, 123, 1024]
-for seed in seeds:
-  main(seed)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, required=True)
+    parser.add_argument('--datasplit', type=str, required=True)
+    args = parser.parse_args()
+    dataset = args.dataset
+    datasplit = args.datasplit
+
+    seeds = [0, 1, 42, 123, 1024]
+
+    print(f"Datasplit: {datasplit}")
+    for seed in seeds:
+      print(f"Seed: {seed}")
+      main(seed, dataset, datasplit)
