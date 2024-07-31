@@ -200,12 +200,12 @@ def main(seed, dataset, datasplit):
   ])
 
   # Load the COCO dataset
-  train_dataset = CocoDetectionDataset(root='/content/coco/train2017/',
-                                        annFile=f'/content/coco/datasets/{dataset}/annotations/{datasplit}_instances_train2017.json',
+  train_dataset = CocoDetectionDataset(root='./content/coco/train2017/',
+                                        annFile=f'./content/coco/datasets/{dataset}/annotations/{datasplit}_instances_train2017.json',
                                         transform=transform)
 
-  val_dataset = CocoDetectionDataset(root='/content/coco/val2017',
-                                      annFile=f'/content/coco/datasets/{dataset}/annotations/{datasplit}_instances_val2017.json',
+  val_dataset = CocoDetectionDataset(root='./content/coco/val2017',
+                                      annFile=f'./content/coco/datasets/{dataset}/annotations/{datasplit}_instances_val2017.json',
                                       transform=transform)
 
 
@@ -239,7 +239,7 @@ def main(seed, dataset, datasplit):
   best_val_targets = None
   best_val_probabilities = None
 
-  output_filepath = f"/content/coco/datasets/{dataset}/output/{datasplit}_training_output.tsv"
+  output_filepath = f"./content/coco/datasets/{dataset}/output/{datasplit}_training_output.tsv"
 
   # Open a file to write the output
   with open(output_filepath, "a") as output_file:
@@ -263,7 +263,7 @@ def main(seed, dataset, datasplit):
         best_val_targets = val_targets
         best_val_probabilities = val_probabilities
         # Save the best model
-        torch.save(model.state_dict(), f'/content/coco/datasets/{dataset}/models/{datasplit}_model.pth')
+        torch.save(model.state_dict(), f'./content/coco/datasets/{dataset}/models/{datasplit}_model.pth')
       else:
         epochs_without_improvement += 1
         if epochs_without_improvement >= patience:
