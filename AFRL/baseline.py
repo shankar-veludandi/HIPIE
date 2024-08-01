@@ -136,7 +136,7 @@ def write_confusion_matrix(val_targets, val_predictions, output_file):
 
     output_file.write("Class_0_TP\tClass_0_FP\tClass_0_FN\tClass_0_TN\n")
     for row in summed_confusion_matrix:
-        output_file.write("\t".join(map(str, row)) + "\n")
+        output_file.write("\t".join(map(str, row)) + "\t")
 
 
 def write_roc_curve(val_targets, val_probabilities, output_file):
