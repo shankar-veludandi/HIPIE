@@ -191,7 +191,7 @@ def write_roc_curve(val_targets, val_probabilities, output_file):
 
 
 
-def main(seed, dataset, datasplit):
+def main(seed, dataset, datasplit, output_filepath):
 
   # Define transforms
   transform = transforms.Compose([
@@ -239,8 +239,6 @@ def main(seed, dataset, datasplit):
   best_val_targets = None
   best_val_probabilities = None
 
-  output_filepath = f"./content/coco/datasets/{dataset}/output/{datasplit}_training_output.tsv"
-
   # Open a file to write the output
   with open(output_filepath, "a") as output_file:
     output_file.write(f'# Seed: {seed}\n')
@@ -283,6 +281,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     dataset = args.dataset
     datasplit = args.datasplit
+    output_filepath = f"./content/coco/datasets/{dataset}/output/{datasplit}_training_output.tsv"
 
     seeds = [0, 1, 42, 123, 1024]
 
@@ -293,7 +292,7 @@ if __name__ == '__main__':
 
     for seed in seeds:
       print(f"Seed: {seed}")
-      main(seed, dataset, datasplit)
+      main(seed, dataset, datasplit, output_filepath)
 
     # Measure end time and calculate the duration
     end_time = time.time()
