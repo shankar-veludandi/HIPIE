@@ -287,6 +287,10 @@ if __name__ == '__main__':
 
     print(f"Datasplit: {datasplit}")
 
+    # Write the datasplit to the output file
+    with open(output_filepath, "a") as output_file:
+        output_file.write(f"Datasplit: {datasplit}")
+
     # Measure the execution time
     start_time = time.time()
 
